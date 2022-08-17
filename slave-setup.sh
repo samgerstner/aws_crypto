@@ -7,6 +7,7 @@ SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 # Verify that coin name was passed to script
 if [ -n "$1"]
+then
     COIN_NAME="$1"
 else
     echo "Error: You must supply a coin name."

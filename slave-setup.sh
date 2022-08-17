@@ -5,25 +5,40 @@ XMRIG_VERSION="6.18.0"
 DOWNLOAD_LINK="https://github.com/xmrig/xmrig/releases/download/v$XMRIG_VERSION/xmrig-$XMRIG_VERSION-linux-x64.tar.gz"
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-# Create xmrig User
-sudo adduser --gecos --password "CryptoSlave2022!" --quiet
-sudo usermod -aG sudo xmrig
-su xmrig
+# Verify that coin name was passed to script
+if [ -n "$1"]
+    COIN_NAME="$1"
+else
+    echo "Error: You must supply a coin name."
+    echo "Usage: ./slave-setup <coin-name>"
+    exit 1
+fi
+
+# Create xmrig user
+sudo su
+adduser --gecos --disabled-password xmrig
+usermod -aG sudo xmrig
 
 # Download XMRig
+cd /home/xmrig
 wget $DOWNLOAD_LINK
-
-# Extract XMRig
 tar -xvf xmrig-$XMRIG_VERSION-linux-x64.tar.gz
-rm -f xmrig-$XMRIG_VERSION-linux-x64.tar.gz
+rm xmrig-$XMRIG_VERSION-linux-x64.tar.gz
 mv xmrig-$XMRIG_VERSION xmrig
-cd xmrig
 
-# Remove default XMRig config
-rm -f config.json
+# Copy XMRig config files for mining
+cp $SCRIPT_DIR/*_config.json /home/xmrig/xmrig
 
-# Copy custom XMRig config
-cp $SCRIPT_DIR/monero_config.json ./config.json
+# Set XMRig application folder permissions
+chown -R xmrig /home/xmrig/xmrig
+chmod -R 744 /home/xmrig/xmrig
+
+# Call slave initialize endpoint
+curl https://reqbin.com/echo/post/json 
+   -H "Content-Type: application/json"
+   -d '{"hostname": "test.test.com"}' 
 
 # Start XMRig
-sudo ./xmrig
+su xmrig
+cd ~/xmrig
+sudo ./xmrig --config=$COIN_NAME_config.json
